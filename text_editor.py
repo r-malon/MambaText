@@ -6,12 +6,12 @@ def about():
 	messagebox.showinfo('About',
 	 'Text Editor v0.1\nCreated by Jailson.')
 
-def saveas(event):
+def saveas(event=None):
 	save_local = filedialog.asksaveasfilename()
 	with open(save_local, 'w+') as f:
 		f.write(txt.get("1.0", "end"))
 
-def open_file(event):
+def open_file(event=None):
 	file = filedialog.askopenfilename()
 	with open(file, 'rb') as f:
 		opened = f.read()
@@ -28,10 +28,6 @@ def open_file(event):
 def replace_text(text):
 	txt.delete("1.0", "end")
 	txt.insert("end", text)
-
-def label_updater():
-	while True:
-		text_info.after(500, v.set(f"Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}"))
 
 root = Tk()
 screen_width = root.winfo_screenwidth()
@@ -50,17 +46,17 @@ edit_menu = Menu(menu, tearoff=0)
 options_menu = Menu(menu, tearoff=0)
 font_menu = Menu(edit_menu, tearoff=0)
 font_size_menu = Menu(edit_menu, tearoff=0)
+help_menu = Menu(menu, tearoff=0)
 
 menu.add_cascade(label='File', menu=file_menu)
 menu.add_cascade(label='Edit', menu=edit_menu)
 menu.add_cascade(label='Options', menu=options_menu)
-menu.add_command(label='About', command=about)
 menu.add_separator()
-menu.add_command(label='Quit', command=root.quit)
+menu.add_cascade(label='Help', menu=help_menu)
 
 file_menu.add_command(label='New file')
-file_menu.add_command(label='Open file')
-file_menu.add_command(label='Save file')
+file_menu.add_command(label='Open file', command=open_file)
+file_menu.add_command(label='Save file', command=saveas)
 
 edit_menu.add_command(label='Paste', command=lambda: root.event_generate("<<Paste>>"))
 edit_menu.add_command(label='Copy', command=lambda: root.event_generate("<<Copy>>"))
@@ -75,10 +71,19 @@ options_menu.add_cascade(label='Change font size', menu=font_size_menu)
 font_menu.add_command(label='Arial', command=lambda: txt.config(font='Arial'))
 font_menu.add_command(label='Times New Roman', command=lambda: txt.config(font='Times'))
 font_menu.add_command(label='Courier', command=lambda: txt.config(font='Courier'))
+font_menu.add_command(label='Georgia', command=lambda: txt.config(font='Georgia'))
+font_menu.add_command(label='Verdana', command=lambda: txt.config(font='Verdana'))
+font_menu.add_command(label='Comic Sans', command=lambda: txt.config(font=('Comic Sans MS', 10, 'bold')))
+font_menu.add_command(label='Trebuchet', command=lambda: txt.config(font=('Trebuchet MS', 10)))
+
+help_menu.add_command(label='About', command=about)
+help_menu.add_command(label='Quit', command=root.quit)
 
 root.bind("<Control-s>", saveas)
 root.bind("<Control-o>", open_file)
 root.bind("<Key>", lambda x: v.set(f"Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}"))
+root.bind("<F11>", lambda x: root.attributes("-fullscreen", True))
+root.bind("<Escape>", lambda x: root.attributes("-fullscreen", False))
 
 if __name__ == '__main__':
 	txt.pack(expand=True, fill=BOTH)
