@@ -8,12 +8,16 @@ def about():
 
 def saveas(event=None):
 	save_local = filedialog.asksaveasfilename()
+	if save_local == '':
+		return False
 	with open(save_local, 'w+') as f:
 		f.write(txt.get("1.0", "end"))
 
 def open_file(event=None):
-	file = filedialog.askopenfilename()
-	with open(file, 'rb') as f:
+	file_name = filedialog.askopenfilename()
+	if file_name == '':
+		return False
+	with open(file_name, 'rb') as f:
 		opened = f.read()
 	if txt.get("1.0", "end") != '\n':
 		asked = messagebox.askyesno('Opening File',
@@ -22,8 +26,9 @@ def open_file(event=None):
 			replace_text(opened)
 		else:
 			return False
-	replace_text(opened)
-	return True
+	else:
+		replace_text(opened)
+		return True
 
 def replace_text(text):
 	txt.delete("1.0", "end")
@@ -81,7 +86,7 @@ help_menu.add_command(label='Quit', command=root.quit)
 
 root.bind("<Control-s>", saveas)
 root.bind("<Control-o>", open_file)
-root.bind("<Key>", lambda x: v.set(f"Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}"))
+root.bind("<Key>", lambda x: v.set(f"Position: {txt.index(INSERT)}; Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}"))
 root.bind("<F11>", lambda x: root.attributes("-fullscreen", True))
 root.bind("<Escape>", lambda x: root.attributes("-fullscreen", False))
 
@@ -90,6 +95,6 @@ if __name__ == '__main__':
 	txt.focus()
 	bottom_bar.pack(fill=X)
 	text_info.pack(side=LEFT)
-	v.set(f"Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}")
+	v.set(f"Position: {txt.index(INSERT)}; Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}")
 	root.config(menu=menu)
 	root.mainloop()
