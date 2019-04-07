@@ -1,8 +1,9 @@
 {
 	"size": "720x480",
 	"title": "My editor",
-	"background": "#2e2e2e",
+	"background": "#333",
 	"text_color": "#c8c8c8",
 	"insert_color": "#FFA07A",
-	"insert_width": 1
+	"insert_width": 1,
+	"music": ["sound/Lazy Day Blues.ogg"]
 }
