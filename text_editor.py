@@ -3,6 +3,8 @@ from tkinter import messagebox
 from tkinter import filedialog
 from tkinter.simpledialog import askstring
 #from tkinter import ttk
+from requests import get
+from requests.exceptions import MissingSchema
 from json import load
 from pygame.mixer import music
 from pygame.mixer import init
@@ -35,16 +37,42 @@ def open_file(event=None):
 		replace_text(opened)
 		return True
 
+def scrap_page():
+	link = askstring('Scraping page', 'Enter the link you want to scrap: ')
+	try:
+		response = get(link)
+	except (TclError, MissingSchema):
+		return messagebox.showinfo('Error', 'Invalid link')
+	if txt.get("1.0", "end") != '\n':
+		asked = messagebox.askyesno('Scraping page',
+		 'Do you want to replace the current text?', icon='warning')
+		if asked:
+			replace_text(response.content)
+		else:
+			return False
+	else:
+		replace_text(response.content)
+		return True
+
 def replace_text(text):
 	txt.delete("1.0", "end")
 	txt.insert("end", text)
 
 def find_text(event=None):
-	length = StringVar()
 	to_find = askstring('Find', 'Enter what you want to find: ')
-	position = txt.search(to_find, '1.0', stopindex='end', count=length)
-	txt.tag_add("found", position, f"{position}+{length.get()}c")
+	while True:
+		try:
+			length = StringVar()
+			position = txt.search(to_find, '1.0', stopindex='end', count=length)
+			txt.tag_add("found", position, f"{position}+{length.get()}c")
+		except TclError:
+			messagebox.showinfo('hi')
+			break
 	txt.focus()
+
+def play_song(path):
+	music.load(path)
+	music.play()
 
 def maximize(event):
 	root.attributes("-fullscreen", True)
@@ -82,8 +110,6 @@ text_info = Label(bottom_bar, textvariable=v)
 txt = Text(root, background=settings['background'], foreground=settings['text_color'],
  insertbackground=settings['insert_color'], insertwidth=settings['insert_width'],
   insertofftime=200, insertontime=500)
-scroll = Scrollbar(txt, cursor='arrow')
-txt.config(yscrollcommand=scroll.set)
 txt.tag_configure("found", background="green")
 init()
 
@@ -115,6 +141,7 @@ edit_menu.add_command(label='Find', command=find_text)
 options_menu.add_cascade(label='Change font', menu=font_menu)
 options_menu.add_cascade(label='Change font size', menu=font_size_menu)
 options_menu.add_cascade(label='Pick a song', menu=music_menu)
+options_menu.add_cascade(label='Scrap a webpage', command=scrap_page)
 
 font_menu.add_command(label='Arial', command=lambda: txt.config(font='Arial'))
 font_menu.add_command(label='Times New Roman', command=lambda: txt.config(font='Times'))
@@ -134,9 +161,8 @@ font_size_menu.add_command(label='22')
 font_size_menu.add_command(label='24')
 
 #music_menu.add_command(label='Lazy Day Blues', command=lambda: music.play(settings['music'][0]))
-for sound in listdir('sound'):
-	music.load('sound/' + sound)
-	music_menu.add_command(label=sound, command=music.play)
+for song in listdir('sound'):
+	music_menu.add_command(label=song, command=lambda: play_song(f'sound/{song}'))
 music_menu.add_command(label='Pause', command=music.pause)
 music_menu.add_command(label='Unpause', command=music.unpause)
 
@@ -152,7 +178,6 @@ root.bind("<F11>", maximize)
 root.bind("<Control-Shift-Z>", lambda x: txt.event_generate("<<Redo>>"))
 
 if __name__ == '__main__':
-	scroll.pack(side=RIGHT, fill=Y)
 	txt.pack(expand=True, fill=BOTH)
 	txt.focus()
 	bottom_bar.pack(fill=X)
