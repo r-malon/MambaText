@@ -5,5 +5,13 @@
 	"text_color": "#c8c8c8",
 	"insert_color": "#FFA07A",
 	"insert_width": 1,
-	"music": ["sound/Lazy Day Blues.ogg"]
+	"found_color": "#00FF00",
+	"filetypes": [
+		["All Files", "*.*"], 
+		["Text Files", "*.txt"], 
+		["Python Scripts", "*.py"], 
+		["Markdown Documents", "*.md"], 
+		["JavaScript Files", "*.js"], 
+		["HTML Documents", "*.html"], 
+		["CSS Documents", "*.css"]]
 }

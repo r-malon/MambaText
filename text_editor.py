@@ -60,13 +60,17 @@ def replace_text(text):
 
 def find_text(event=None):
 	to_find = askstring('Find', 'Enter what you want to find: ')
+	search_start = '1.0'
+	matches = 0
 	while True:
 		try:
 			length = StringVar()
-			position = txt.search(to_find, '1.0', stopindex='end', count=length)
+			position = txt.search(to_find, search_start, stopindex='end', count=length)
 			txt.tag_add("found", position, f"{position}+{length.get()}c")
+			search_start = f"{position}+{length.get()}c"
+			matches += 1
 		except TclError:
-			messagebox.showinfo('hi')
+			messagebox.showinfo('Find', f'{to_find} had {matches} matches')
 			break
 	txt.focus()
 
@@ -82,6 +86,20 @@ def minimize(event):
 	root.attributes("-fullscreen", False)
 	root.bind("<F11>", maximize)
 
+def show_menu(event):
+	root.config(menu=menu)
+	root.bind("<Alt-m>", hide_menu)
+
+def hide_menu(event):
+	root.config(menu='')
+	root.bind("<Alt-m>", show_menu)
+
+font = current_font, current_font_size, current_style = 'Courier', 10, 'normal'
+
+def font_config(font=current_font, size=current_font_size, style=current_style):
+	txt.config(font=(font, size, style))
+	current_font, current_font_size, current_style = font, size, style
+
 '''def add_tab():
 	tab = Frame(notebook)
 	notebook.add(tab, text=f'hi {len(tab_list)}')
@@ -92,13 +110,7 @@ with open('settings.json', 'r') as f:
 	settings = load(f)
 
 root = Tk()
-filetypes = [("All Files", "*.*"),
-	("Text Files", "*.txt"),
-	("Python Scripts", "*.py"),
-	("Markdown Documents", "*.md"),
-	("JavaScript Files", "*.js"),
-	("HTML Documents", "*.html"),
-	("CSS Documents", "*.css")]
+filetypes = [tuple(i) for i in settings['filetypes']]
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 root.geometry(settings['size'] + "+" + str(screen_width//2-360) + "+" + str(screen_height//2-240))
@@ -107,10 +119,11 @@ v = StringVar()
 bottom_bar = Frame(relief=SUNKEN)
 menu = Menu(root)
 text_info = Label(bottom_bar, textvariable=v)
+#font = current_font, current_font_size, current_style = 'Courier', 10, 'normal'
 txt = Text(root, background=settings['background'], foreground=settings['text_color'],
  insertbackground=settings['insert_color'], insertwidth=settings['insert_width'],
-  insertofftime=200, insertontime=500)
-txt.tag_configure("found", background="green")
+  insertofftime=200, insertontime=500, font=font)
+txt.tag_configure("found", background=settings['found_color'])
 init()
 
 file_menu = Menu(menu, tearoff=0)
@@ -151,16 +164,9 @@ font_menu.add_command(label='Verdana', command=lambda: txt.config(font='Verdana'
 font_menu.add_command(label='Comic Sans', command=lambda: txt.config(font=('Comic Sans MS', 10, 'bold')))
 font_menu.add_command(label='Trebuchet', command=lambda: txt.config(font=('Trebuchet MS', 10)))
 
-font_size_menu.add_command(label='8')
-font_size_menu.add_command(label='10')
-font_size_menu.add_command(label='12')
-font_size_menu.add_command(label='14')
-font_size_menu.add_command(label='18')
-font_size_menu.add_command(label='20')
-font_size_menu.add_command(label='22')
-font_size_menu.add_command(label='24')
+for i in range(8, 26, 2):
+	font_size_menu.add_command(label=str(i), command=lambda: font_config(size=i))
 
-#music_menu.add_command(label='Lazy Day Blues', command=lambda: music.play(settings['music'][0]))
 for song in listdir('sound'):
 	music_menu.add_command(label=song, command=lambda: play_song(f'sound/{song}'))
 music_menu.add_command(label='Pause', command=music.pause)
@@ -176,6 +182,7 @@ root.bind("<Key>", lambda x: v.set(f"Position: {txt.index(INSERT)}; Lines: {int(
 root.bind("<Button>", lambda x: v.set(f"Position: {txt.index(INSERT)}; Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}"))
 root.bind("<F11>", maximize)
 root.bind("<Control-Shift-Z>", lambda x: txt.event_generate("<<Redo>>"))
+root.bind("<Alt-m>", hide_menu)
 
 if __name__ == '__main__':
 	txt.pack(expand=True, fill=BOTH)
@@ -184,4 +191,5 @@ if __name__ == '__main__':
 	text_info.pack(side=LEFT)
 	v.set(f"Position: {txt.index(INSERT)}; Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}")
 	root.config(menu=menu)
+	print(txt.cget('font'))
 	root.mainloop()
