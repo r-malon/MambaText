@@ -13,5 +13,13 @@
 		["Markdown Documents", "*.md"], 
 		["JavaScript Files", "*.js"], 
 		["HTML Documents", "*.html"], 
-		["CSS Documents", "*.css"]]
+		["CSS Documents", "*.css"]],
+	"shortcuts": {
+		"menu_hider": "<Alt-m>",
+		"maximize": "<F11>",
+		"save": "<Control-s>",
+		"open": "<Control-o>",
+		"find": "<Control-f>",
+		"redo": "<Control-Shift-Z>"
+	}
 }
