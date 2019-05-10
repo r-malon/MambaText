@@ -34,28 +34,6 @@ def replace_text(text):
 	txt.delete("1.0", "end")
 	txt.insert("end", text)
 
-def maximize(event):
-	root.attributes("-fullscreen", True)
-	root.bind("<F11>", minimize)
-
-def minimize(event):
-	root.attributes("-fullscreen", False)
-	root.bind("<F11>", maximize)
-
-def show_menu(event):
-	root.config(menu=menu)
-	root.bind("<Alt-m>", hide_menu)
-
-def hide_menu(event):
-	root.config(menu='')
-	root.bind("<Alt-m>", show_menu)
-
-font = current_font, current_font_size, current_style = 'Courier', 10, 'normal'
-
-def font_config(font=current_font, size=current_font_size, style=current_style):
-	txt.config(font=(font, size, style))
-	current_font, current_font_size, current_style = font, size, style
-
 with open('settings.json', 'r') as f:
 	settings = load(f)
 
@@ -82,7 +60,6 @@ help_menu = Menu(menu, tearoff=0)
 menu.add_cascade(label='File', menu=file_menu)
 menu.add_cascade(label='Edit', menu=edit_menu)
 menu.add_cascade(label='Options', menu=options_menu)
-menu.add_separator()
 menu.add_cascade(label='Help', menu=help_menu)
 
 file_menu.add_command(label='Open file', command=open_file)
@@ -94,7 +71,7 @@ edit_menu.add_command(label='Cut', command=lambda: txt.event_generate("<<Cut>>")
 edit_menu.add_command(label='Undo', command=lambda: txt.event_generate("<<Undo>>"))
 edit_menu.add_command(label='Redo', command=lambda: txt.event_generate("<<Redo>>"))
 
-options_menu.add_cascade(label='Change font', menu=font_menu)
+options_menu.add_cascade(label='Change font')
 
 font_menu.add_command(label='Arial', command=lambda: txt.config(font='Arial'))
 font_menu.add_command(label='Times New Roman', command=lambda: txt.config(font='Times'))
