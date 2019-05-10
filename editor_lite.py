@@ -49,7 +49,7 @@ menu = Menu(root)
 text_info = Label(bottom_bar, textvariable=v)
 txt = Text(root, background=settings['background'], foreground=settings['text_color'],
  insertbackground=settings['insert_color'], insertwidth=settings['insert_width'],
-  insertofftime=200, insertontime=500, font=font)
+  insertofftime=200, insertontime=500)
 
 file_menu = Menu(menu, tearoff=0)
 edit_menu = Menu(menu, tearoff=0)
