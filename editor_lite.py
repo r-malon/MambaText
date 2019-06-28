@@ -47,6 +47,13 @@ def scrap_page():
 		replace_text(response.content)
 		return True
 
+def maximize(event):
+	root.attributes("-fullscreen", True)
+	root.bind("<F11>", minimize)
+def minimize(event):
+	root.attributes("-fullscreen", False)
+	root.bind("<F11>", maximize)
+
 def replace_text(text):
 	txt.delete("1.0", "end")
 	txt.insert("end", text)
