@@ -1,6 +1,9 @@
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
+from tkinter.simpledialog import askstring
+from requests import get
+from requests.exceptions import MissingSchema, InvalidSchema
 from json import load
 
 def about():
