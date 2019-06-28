@@ -30,6 +30,23 @@ def open_file(event=None):
 		replace_text(opened)
 		return True
 
+def scrap_page():
+	link = askstring('Scraping page', 'Enter the link you want to scrap: ')
+	try:
+		response = get(link)
+	except (TclError, MissingSchema, InvalidSchema, ConnectionError):
+		return messagebox.showinfo('Error', 'Invalid link')
+	if txt.get("1.0", "end") != '\n':
+		asked = messagebox.askyesno('Scraping page',
+		 'Do you want to replace the current text?', icon='warning')
+		if asked:
+			replace_text(response.content)
+		else:
+			return False
+	else:
+		replace_text(response.content)
+		return True
+
 def replace_text(text):
 	txt.delete("1.0", "end")
 	txt.insert("end", text)
