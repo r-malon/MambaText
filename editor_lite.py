@@ -96,6 +96,7 @@ edit_menu.add_command(label='Undo', command=lambda: txt.event_generate("<<Undo>>
 edit_menu.add_command(label='Redo', command=lambda: txt.event_generate("<<Redo>>"))
 
 options_menu.add_cascade(label='Change font')
+options_menu.add_command(label='Scrap a webpage', command=scrap_page)
 
 font_menu.add_command(label='Arial', command=lambda: txt.config(font='Arial'))
 font_menu.add_command(label='Times New Roman', command=lambda: txt.config(font='Times'))
@@ -112,7 +113,6 @@ root.bind("<Key>", lambda x: v.set(f"Position: {txt.index(INSERT)}; Lines: {int(
 root.bind("<Button>", lambda x: v.set(f"Position: {txt.index(INSERT)}; Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}"))
 root.bind("<F11>", maximize)
 root.bind("<Control-Shift-Z>", lambda x: txt.event_generate("<<Redo>>"))
-root.bind("<Alt-m>", hide_menu)
 
 if __name__ == '__main__':
 	txt.pack(expand=True, fill=BOTH)
