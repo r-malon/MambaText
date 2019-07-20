@@ -1,11 +1,20 @@
 {
 	"size": "720x480",
+	"minsize": [240, 460],
 	"title": "My editor",
+	"icon": "icon.ico",
 	"background": "#333",
 	"text_color": "#c8c8c8",
 	"insert_color": "#FFA07A",
 	"insert_width": 1,
-	"found_color": "#00FF00",
+	"insertofftime": 200,
+	"insertontime": 500,
+	"selectforeground": "#6c99bb",
+	"selectbackground": "#d6d6d6",
+	"found_color": "#008000",
+	"min_font_size": 6,
+	"max_font_size": 26,
+	"font_size_interval": 2,
 	"filetypes": [
 		["All Files", "*.*"], 
 		["Text Files", "*.txt"], 
@@ -14,12 +23,21 @@
 		["JavaScript Files", "*.js"], 
 		["HTML Documents", "*.html"], 
 		["CSS Documents", "*.css"]],
+	"fonts": [
+		"Arial",
+		"Times",
+		"Courier",
+		"Georgia",
+		"Verdana",
+		"{Comic Sans MS}",
+		"{Trebuchet MS}"],
 	"shortcuts": {
 		"menu_hider": "<Alt-m>",
 		"maximize": "<F11>",
 		"save": "<Control-s>",
 		"open": "<Control-o>",
 		"find": "<Control-f>",
+		"clear_highlight": "<Control-l>",
 		"redo": "<Control-Shift-Z>"
 	}
 }

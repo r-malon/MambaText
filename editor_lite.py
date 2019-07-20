@@ -112,8 +112,8 @@ help_menu.add_command(label='Quit', command=root.quit)
 
 root.bind("<Control-s>", saveas)
 root.bind("<Control-o>", open_file)
-root.bind("<Key>", lambda x: v.set(f"Position: {txt.index(INSERT)}; Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}"))
-root.bind("<Button>", lambda x: v.set(f"Position: {txt.index(INSERT)}; Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}"))
+root.bind("<Key>", lambda x: v.set(f"Position: {txt.index(INSERT)}; Lines: {int(txt.index('end').split('.')[0]) - 1}; Chars: {len(txt.get('1.0', 'end')) - 1}"))
+root.bind("<Button>", lambda x: v.set(f"Position: {txt.index(INSERT)}; Lines: {int(txt.index('end').split('.')[0]) - 1}; Chars: {len(txt.get('1.0', 'end')) - 1}"))
 root.bind("<F11>", maximize)
 root.bind("<Control-Shift-Z>", lambda x: txt.event_generate("<<Redo>>"))
 
@@ -122,6 +122,6 @@ if __name__ == '__main__':
 	txt.focus()
 	bottom_bar.pack(fill=X)
 	text_info.pack(side=LEFT)
-	v.set(f"Position: {txt.index(INSERT)}; Lines: {int(txt.index('end').split('.')[0]) - 1}; Letters: {len(txt.get('1.0', 'end')) - 1}")
+	v.set(f"Position: {txt.index(INSERT)}; Lines: {int(txt.index('end').split('.')[0]) - 1}; Chars: {len(txt.get('1.0', 'end')) - 1}")
 	root.config(menu=menu)
 	root.mainloop()
