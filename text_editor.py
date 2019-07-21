@@ -1,18 +1,15 @@
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
+from tkinter.font import Font
 from tkinter.simpledialog import askstring
-#import tkinter.font as tkfont
 #from tkinter import ttk
 from requests import get
 from requests.exceptions import MissingSchema, InvalidSchema
 from json import load
 from pygame.mixer import music
 from pygame.mixer import init
-from os import listdir, rename
-
-def about():
-	messagebox.showinfo('About', 'Text Editor\nCreated by R. Malon.')
+import os
 
 class TextBox(Text):
 	def __init__(self, *args, **kwargs):
@@ -20,19 +17,19 @@ class TextBox(Text):
 		self.current_file = ''
 		self.modified = False
 		self.filetypes = [tuple(i) for i in settings['filetypes']]
-		self.font = 'Courier', 10, 'normal' #{'name': 'Courier', 'size': 10, 'style': 'normal'}
+		self.font = Font(family='Courier', size=10, weight='normal', slant='roman') #{'name': 'Courier', 'size': 10, 'style': 'normal'}
 		self.v = StringVar()
 		self.v.set(f"Position: {self.index(INSERT)}; Lines: {int(self.index('end-1c').split('.')[0])}; Chars: {len(self.get('1.0', 'end')) - 1}")
 		self.tag_configure("found", background=settings['found_color'])
-		self.tag_configure("bold", font=(self.font[0], self.font[1], 'bold'))
-		self.tag_configure("italic", font=(self.font[0], self.font[1], 'italic'))
-		self.tag_configure("underline", font=(self.font[0], self.font[1], 'underline'))
+		self.tag_configure("bold", font=(self.font.actual()["family"], self.font.actual()["size"], 'bold'))
+		self.tag_configure("italic", font=(self.font.actual()["family"], self.font.actual()["size"], 'italic'))
+		self.tag_configure("underline", font=(self.font.actual()["family"], self.font.actual()["size"], 'underline'))
 		self.binds()
 		self.focus()
 
 	def saveas(self, event=None):
 		save_local = filedialog.asksaveasfilename(filetypes=self.filetypes)
-		if save_local == '':
+		if not save_local:
 			return False
 		with open(save_local, 'w+') as f:
 			f.write(self.get("1.0", "end"))
@@ -41,7 +38,7 @@ class TextBox(Text):
 
 	def open_file(self, event=None):
 		file_name = filedialog.askopenfilename(filetypes=self.filetypes)
-		if file_name == '':
+		if not file_name:
 			return "break"
 		with open(file_name, 'rb') as f:
 			opened = f.read()
@@ -49,6 +46,26 @@ class TextBox(Text):
 			root.title(f"{file_name} - " + settings['title'])
 			self.current_file = file_name
 		return "break"
+
+	def rename(self, event=None):
+		if not self.current_file:
+			file_name = filedialog.askopenfilename()
+			self.focus()
+			if not file_name:
+				return False
+		else:
+			file_name = self.current_file
+		path = filedialog.askdirectory()
+		self.focus()
+		if not path:
+			path = os.path.dirname(file_name)
+		new_name = askstring("Renaming File", "Enter the new name: ")
+		self.focus()
+		if not new_name:
+			return False
+		os.rename(file_name, os.path.join(path + '/', new_name))
+		self.current_file = path + new_name
+		root.title(f"{self.current_file} - " + settings['title'])
 
 	def new_text(self, text):
 		self.delete("1.0", "end")
@@ -69,25 +86,34 @@ class TextBox(Text):
 			self.new_text(new_str)
 			return True
 
-	def font_config(self, **kwargs):
-		name = kwargs.get('name')
-		size = kwargs.get('size')
-		#style = kwargs.get('style')
-		listing = [name, size]
-		new_font = ''
-		for n in listing:
-			if n:
-				new_font += str(n) + ' '
-			else:
-				print(listing.index(n))
-				new_font += str(self.font[listing.index(n)]) + ' '
-				print(new_font)
-		print(new_font)
-		self.config(font=new_font)
-		print(self.cget('font'))
+	'''def font_config(self, **kwargs):
+					name = kwargs.get('name')
+					size = kwargs.get('size')
+					#style = kwargs.get('style')
+					listing = [name, size]
+					new_font = ''
+					for n in listing:
+						if n:
+							new_font += str(n) + ' '
+						else:
+							print(listing.index(n))
+							new_font += str(self.font[listing.index(n)]) + ' '
+							print(new_font)
+					print(new_font)
+					self.config(font=new_font)
+					print(self.cget('font'))'''
+
+	def change_size(self, new_size):
+		self.font.configure(size=new_size)
+
+	def change_font(self, new_font):
+		self.font.configure(family=new_font)
 
 	def scrap_page(self):
 		link = askstring('Scraping page', 'Enter the link you want to scrap: ')
+		if not link:
+			return False
+		self.focus()
 		try:
 			response = get(link)
 		except (TclError, MissingSchema, InvalidSchema, ConnectionError):
@@ -106,6 +132,9 @@ class TextBox(Text):
 		to_find = askstring('Find', 'Enter what you want to find: ')
 		search_start = '1.0'
 		matches = 0
+		self.focus()
+		if not to_find:
+			return False
 		while True:
 			try:
 				length = StringVar()
@@ -116,10 +145,9 @@ class TextBox(Text):
 			except TclError:
 				messagebox.showinfo('Find', f'{to_find} had {matches} matches')
 				break
-		self.focus()
 
 	def stat_updater(self, event=None):
-		self.v.set(f"Position: {self.index(INSERT)}; Lines: {int(self.index('end').split('.')[0]) - 1}; Chars: {len(self.get('1.0', 'end')) - 1}")
+		self.v.set(f"Position: {self.index(INSERT)}; Lines: {int(self.index('end-1c').split('.')[0])}; Chars: {len(self.get('1.0', 'end')) - 1}")
 
 	def binds(self):
 		self.bind(settings["shortcuts"]["save"], self.saveas)
@@ -130,9 +158,23 @@ class TextBox(Text):
 		self.bind("<Key>", self.stat_updater)
 		self.bind("<Button>", self.stat_updater)
 
+
+def about():
+	#messagebox.showinfo('About', 'Text Editor\nCreated by R. Malon.\n\nCopyright © 2019')
+	top = Toplevel(root)
+	top.title("About")
+	Message(top, 
+		text='Text Editor\nCreated by R. Malon.\n\nCopyright © 2019').pack()
+
 def play_song(path):
+	if not path:
+		return False
 	music.load(path)
 	music.play()
+
+def open_audio():
+	file_name = filedialog.askopenfilename(filetypes=[("Audio files", "*.mp3 *.ogg *.wav")])
+	play_song(file_name)
 
 def maximize(event):
 	root.attributes("-fullscreen", True)
@@ -177,7 +219,7 @@ textbox = TextBox(root,
 	selectbackground=settings["selectbackground"]
 	#tabs=tkfont.Font(font=txt_font).measure(' ' * 4), #overcomplicate?
 	)
-bottom_bar = Frame(relief=SUNKEN)
+bottom_bar = Frame(root)
 text_stats = Label(bottom_bar, textvariable=textbox.v)
 init()
 
@@ -190,6 +232,7 @@ font_size_menu = Menu(menu, tearoff=0)
 style_menu = Menu(menu, tearoff=0)
 help_menu = Menu(menu, tearoff=0)
 music_menu = Menu(menu, tearoff=0)
+default_music_menu = Menu(menu, tearoff=0)
 
 menu.add_cascade(label='File', menu=file_menu)
 menu.add_cascade(label='Edit', menu=edit_menu)
@@ -199,7 +242,10 @@ menu.add_cascade(label='Help', menu=help_menu)
 
 file_menu.add_command(label='New file')#, command=add_tab)
 file_menu.add_command(label='Open file', command=textbox.open_file)
-file_menu.add_command(label='Save file', command=textbox.saveas)
+file_menu.add_command(label='Save as', command=textbox.saveas)
+file_menu.add_command(label='Rename file', command=textbox.rename)
+file_menu.add_separator()
+file_menu.add_command(label='Exit', command=root.quit)
 
 edit_menu.add_command(label='Paste', command=lambda: textbox.event_generate("<<Paste>>"))
 edit_menu.add_command(label='Copy', command=lambda: textbox.event_generate("<<Copy>>"))
@@ -220,21 +266,24 @@ style_menu.add_command(label='Italic', command=lambda: textbox.tagger('italic'))
 style_menu.add_command(label='Underline', command=lambda: textbox.tagger('underline'))
 
 for font_name in settings["fonts"]:
-	font_menu.add_command(label=font_name, command=lambda font_name=font_name: textbox.font_config(name=font_name))
+	font_menu.add_command(label=font_name, command=lambda font_name=font_name: textbox.change_font(font_name))
 
 for size in range(settings["min_font_size"], settings["max_font_size"], settings["font_size_interval"]):
-	font_size_menu.add_command(label=size, command=lambda size=size: textbox.font_config(size=size))
+	font_size_menu.add_command(label=size, command=lambda size=size: textbox.change_size(size))
 
-for song in listdir('sound'):
-	music_menu.add_command(label=song, command=lambda song=song: play_song(f'sound/{song}'))
+music_menu.add_command(label='Open audio file', command=open_audio)
+music_menu.add_cascade(label='Default music', menu=default_music_menu)
+
+for song in os.listdir('sound'):
+	default_music_menu.add_command(label=song, command=lambda song=song: play_song(f'sound/{song}'))
+
+music_menu.add_separator()
 music_menu.add_command(label='Pause', command=music.pause)
 music_menu.add_command(label='Unpause', command=music.unpause)
 
 help_menu.add_command(label='About', command=about)
-help_menu.add_command(label='Quit', command=root.quit)
 
 root.bind(settings["shortcuts"]["maximize"], maximize)
-root.bind(settings["shortcuts"]["redo"], lambda x: textbox.event_generate("<<Redo>>"))
 root.bind(settings["shortcuts"]["menu_hider"], hide_menu)
 
 if __name__ == '__main__':
