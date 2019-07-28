@@ -1,0 +1,26 @@
+{
+	"untitled": "untitled",
+	"open": "Opening File",
+	"about": ["About", "Created by Rafael Malon."],
+	"rename": ["Renaming file", "Enter the new name: ", "File not found"],
+	"ask_replace": ["Replacing", "Do you want to replace the current text?"],
+	"scrap_page": ["Scraping page", "Enter the link you want to scrap: ", "Invalid link"],
+	"find": ["Find", "Enter what you want to find: ", "had", "matches"],
+	"stats": ["Position", "Lines", "Characters"],
+	"menu": ["File", "Edit", "Options", "Help"],
+	"file": ["New file", "Open file", "Save", "Save as", "Rename file", "Exit"],
+	"edit": ["Paste", "Copy", "Cut", "Undo", "Redo", "Find", "Replace", "Clear highlighting"],
+	"options": ["Change font", "Change font size", "Change style", "Change syntax", "Pick a song", "Scrap a webpage", "Highlight all"],
+	"style": ["Bold", "Italic", "Underline"],
+	"music": ["Open audio file", "Default music", "Pause", "Unpause"],
+	"leave": "Quit?",
+	"quit_msg": [
+		"Let's beat it - This is turning into a bug!", 
+		"I wouldn't leave if I were you.\nSublime is much worse.", 
+		"Don't leave yet - There's a bug around that corner!", 
+		"Go ahead and leave.\nSee if I care.", 
+		"Are you sure you want to\nquit this great editor?", 
+		"You're lucky I don't smack you\nfor thinking about leaving.", 
+		"Look, bud.\nYou leave now and you forfeit your line count!", 
+		"So you like Visual Code better than me, right?"]
+}

@@ -1,51 +1,74 @@
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
-from tkinter.font import Font
+#from tkinter.font import Font
 from tkinter.simpledialog import askstring
 #from tkinter import ttk
 from requests import get
-from requests.exceptions import MissingSchema, InvalidSchema
-from json import load
+from requests.exceptions import MissingSchema, InvalidSchema, InvalidURL
 from pygame.mixer import music
 from pygame.mixer import init
+from pygments import lex
+from pygments.lexers import Python3Lexer, CppLexer, HtmlLexer, CssLexer, JavascriptLexer, JavaLexer, CSharpLexer, RustLexer
+from json import load
+from random import choice
 import os
+
+with open('settings.json', encoding='utf-8') as f:
+	settings = load(f)
+
+with open(settings['lang_file'], encoding='utf-8') as f:
+	lang = load(f)
 
 class TextBox(Text):
 	def __init__(self, *args, **kwargs):
-		super(TextBox, self).__init__(*args, **kwargs)		
+		super(TextBox, self).__init__(*args, **kwargs)
 		self.current_file = ''
 		self.modified = False
+		self.current_lexer = Python3Lexer()
 		self.filetypes = [tuple(i) for i in settings['filetypes']]
-		self.font = Font(family='Courier', size=10, weight='normal', slant='roman') #{'name': 'Courier', 'size': 10, 'style': 'normal'}
-		self.v = StringVar()
-		self.v.set(f"Position: {self.index(INSERT)}; Lines: {int(self.index('end-1c').split('.')[0])}; Chars: {len(self.get('1.0', 'end')) - 1}")
-		self.tag_configure("found", background=settings['found_color'])
-		self.tag_configure("bold", font=(self.font.actual()["family"], self.font.actual()["size"], 'bold'))
-		self.tag_configure("italic", font=(self.font.actual()["family"], self.font.actual()["size"], 'italic'))
-		self.tag_configure("underline", font=(self.font.actual()["family"], self.font.actual()["size"], 'underline'))
+		self.config(font='Verdana 12 normal')
+		self.stats = StringVar()
+		self.stats.set(f"{lang['stats'][0]}: {self.index(INSERT)}; {lang['stats'][1]}: {int(self.index('end').split('.')[0]) - 1}; {lang['stats'][2]}: {len(self.get('1.0', 'end')) - 1}")
 		self.binds()
+		self.tag_configs()
 		self.focus()
-
-	def saveas(self, event=None):
-		save_local = filedialog.asksaveasfilename(filetypes=self.filetypes)
-		if not save_local:
-			return False
-		with open(save_local, 'w+') as f:
-			f.write(self.get("1.0", "end"))
-		self.current_file = save_local
-		root.title(f"{self.current_file} - " + settings['title'])
 
 	def open_file(self, event=None):
 		file_name = filedialog.askopenfilename(filetypes=self.filetypes)
 		if not file_name:
 			return "break"
-		with open(file_name, 'rb') as f:
-			opened = f.read()
-		if self.ask_replace(opened, msg='Opening File'):
-			root.title(f"{file_name} - " + settings['title'])
+		try:
+			with open(file_name, encoding='utf-8') as f:
+				opened = f.read()
+		except UnicodeDecodeError:
+			with open(file_name, 'rb') as f:
+				opened = f.read()
+		if self.ask_replace(opened, msg=lang['open']):
+			root.title(f"{file_name} - {settings['title']}")
 			self.current_file = file_name
+			self.modified = False
+			self.stat_updater()
 		return "break"
+
+	def save(self, event=None):
+		if self.current_file:
+			with open(self.current_file, 'w+', encoding='utf-8') as f:
+				f.write(self.get("1.0", "end").strip('\n'))
+			self.modified = False
+		else:
+			self.saveas()
+
+	def saveas(self, event=None):
+		save_local = filedialog.asksaveasfilename(filetypes=self.filetypes)
+		if not save_local:
+			return False
+		with open(save_local, 'w+', encoding='utf-8') as f:
+			f.write(self.get("1.0", "end").strip('\n'))
+		self.current_file = save_local
+		self.modified = False
+		self.stat_updater()
+		root.title(f"{save_local} - {settings['title']}")
 
 	def rename(self, event=None):
 		if not self.current_file:
@@ -59,25 +82,26 @@ class TextBox(Text):
 		self.focus()
 		if not path:
 			path = os.path.dirname(file_name)
-		new_name = askstring("Renaming File", "Enter the new name: ")
+		new_name = askstring(lang['rename'][0], lang['rename'][1])
 		self.focus()
 		if not new_name:
 			return False
-		os.rename(file_name, os.path.join(path + '/', new_name))
+		try:
+			os.rename(file_name, os.path.join(path + '/', new_name))
+		except FileNotFoundError:
+			messagebox.showerror("Error", lang['rename'][2])
 		self.current_file = path + new_name
-		root.title(f"{self.current_file} - " + settings['title'])
+		self.modified = False
+		root.title(f"{self.current_file} - {settings['title']}")
 
 	def new_text(self, text):
 		self.delete("1.0", "end")
 		self.insert("end", text)
 
-	def clear_highlight(self, event=None):
-		self.tag_remove("found", '1.0', 'end')
-
-	def ask_replace(self, new_str, msg='Replacing'):
+	def ask_replace(self, new_str, msg=lang['ask_replace'][0]):
 		if self.get("1.0", "end") != '\n':
 			asked = messagebox.askyesno(msg, 
-				'Do you want to replace the current text?', 
+				lang['ask_replace'][1], 
 				icon='warning')
 			if asked:
 				self.new_text(new_str)
@@ -86,50 +110,34 @@ class TextBox(Text):
 			self.new_text(new_str)
 			return True
 
-	'''def font_config(self, **kwargs):
-					name = kwargs.get('name')
-					size = kwargs.get('size')
-					#style = kwargs.get('style')
-					listing = [name, size]
-					new_font = ''
-					for n in listing:
-						if n:
-							new_font += str(n) + ' '
-						else:
-							print(listing.index(n))
-							new_font += str(self.font[listing.index(n)]) + ' '
-							print(new_font)
-					print(new_font)
-					self.config(font=new_font)
-					print(self.cget('font'))'''
-
-	def change_size(self, new_size):
-		self.font.configure(size=new_size)
-
-	def change_font(self, new_font):
-		self.font.configure(family=new_font)
+	def change_font(self, arg, arg_id):
+		new_font = self.cget('font').split(' ')
+		new_font[arg_id] = arg
+		self.tag_configs()
+		self.config(font=new_font)
 
 	def scrap_page(self):
-		link = askstring('Scraping page', 'Enter the link you want to scrap: ')
+		link = askstring(lang['scrap_page'][0], lang['scrap_page'][1])
 		if not link:
 			return False
 		self.focus()
 		try:
 			response = get(link)
-		except (TclError, MissingSchema, InvalidSchema, ConnectionError):
-			return messagebox.showinfo('Error', 'Invalid link')
-		if self.ask_replace(response.content, msg='Scraping page'):
-			root.title(f"{link} - " + settings['title'])
+		except (TclError, MissingSchema, InvalidSchema, InvalidURL, ConnectionError):
+			return messagebox.showinfo('Error', lang['scrap_page'][2])
+		if self.ask_replace(response.content, msg=lang['scrap_page'][0]):
+			root.title(f"{link} - {settings['title']}")
 
-	def tagger(self, tag):
+	def tagger(self, tag_name):
 		tagged = self.tag_names("sel.first")
-		if tag in tagged:
-			self.tag_remove(tag, "sel.first", "sel.last")
+		self.tag_configs()
+		if tag_name in tagged:
+			self.tag_remove(tag_name, "sel.first", "sel.last")
 		else:
-			self.tag_add(tag, "sel.first", "sel.last")
+			self.tag_add(tag_name, "sel.first", "sel.last")
 
 	def find_text(self, event=None):
-		to_find = askstring('Find', 'Enter what you want to find: ')
+		to_find = askstring(lang['find'][0], lang['find'][1])
 		search_start = '1.0'
 		matches = 0
 		self.focus()
@@ -138,33 +146,144 @@ class TextBox(Text):
 		while True:
 			try:
 				length = StringVar()
-				position = self.search(to_find, search_start, stopindex='end', count=length)
+				position = self.search(
+					to_find, 
+					search_start, 
+					stopindex='end', 
+					count=length)
 				self.tag_add("found", position, f"{position}+{length.get()}c")
 				search_start = f"{position}+{length.get()}c"
 				matches += 1
 			except TclError:
-				messagebox.showinfo('Find', f'{to_find} had {matches} matches')
+				messagebox.showinfo(lang['find'][0], f"{to_find} {lang['find'][2]} {matches} {lang['find'][3]}")
 				break
 
+	def replace_text(self, event=None):
+		#to_find = askstring(lang['find'][0], lang['find'][1])
+		#to_replace = askstring(lang['find'][0], lang['find'][1])
+		top = Toplevel(root, padx=25, pady=25)
+		top.grab_set()
+		top.bind('<Escape>', lambda x: top.destroy())
+		top.title(lang['about'][0])
+		top.resizable(False, False)
+		top.focus()
+		v = StringVar()
+		w = StringVar()
+		Entry(top, textvariable=v).pack()
+		Entry(top, textvariable=w).pack()
+		to_find = v.get()
+		to_replace = w.get()
+		search_start = '1.0'
+		while True:
+			try:
+				length = StringVar()
+				position = self.search(
+					to_find, 
+					search_start, 
+					stopindex='end', 
+					count=length)
+				self.delete(position, f"{position}+{length.get()}c")
+				self.insert(position, to_replace)
+				search_start = f"{position}+{length.get()}c"
+			except TclError:
+				break
+
+	def set_lexer(self, lexer, event=None):
+		self.current_lexer = lexer
+		self.highlight_all()
+
+	def highlight(self, event=None):
+		self.mark_set("range_start", self.index(INSERT)[0] + '.0')
+		data = self.get("range_start", INSERT)
+		for token, content in lex(data, self.current_lexer):
+			self.mark_set("range_end", "range_start+%dc" % len(content))
+			print(token)
+			self.tag_add(str(token), "range_start", "range_end")
+			self.mark_set("range_start", "range_end")
+
+	def highlight_all(self):
+		self.mark_set("range_start", "1.0")
+		self.clear_highlight()
+		data = self.get("range_start", self.index('range_start')[0] + '.end')
+		for token, content in lex(data, self.current_lexer):
+			self.mark_set("range_end", "range_start+%dc" % len(content))
+			print('ALL: ', token)
+			self.tag_add(str(token), "range_start", "range_end")
+			self.mark_set("range_start", "range_end")
+
+	def clear_highlight(self, event=None):
+		for tag in self.tag_names():
+			self.tag_remove(tag, '1.0', 'end')
+
 	def stat_updater(self, event=None):
-		self.v.set(f"Position: {self.index(INSERT)}; Lines: {int(self.index('end-1c').split('.')[0])}; Chars: {len(self.get('1.0', 'end')) - 1}")
+		self.stats.set(f"{lang['stats'][0]}: {self.index(INSERT)}; {lang['stats'][1]}: {int(self.index('end').split('.')[0]) - 1}; {lang['stats'][2]}: {len(self.get('1.0', 'end')) - 1}")
+
+	def tag_configs(self):
+		self.tag_configure("found", background=settings['found_color'])
+		self.tag_configure("bold", font=(self.cget('font').split(' ')[0], self.cget('font').split(' ')[1], 'bold'))
+		self.tag_configure("italic", font=(self.cget('font').split(' ')[0], self.cget('font').split(' ')[1], 'italic'))
+		self.tag_configure("underline", font=(self.cget('font').split(' ')[0], self.cget('font').split(' ')[1], 'underline'))
+		self.tag_configure("Token.Keyword", foreground="#CC7A00")
+		self.tag_configure("Token.Keyword.Constant", foreground="#f97b58")
+		self.tag_configure("Token.Keyword.Declaration", foreground="#9e86c8")
+		self.tag_configure("Token.Keyword.Namespace", foreground="#ec5f66")
+		self.tag_configure("Token.Keyword.Type", foreground="#8dc021")
+		self.tag_configure("Token.Name.Class", foreground="#6c99bb")
+		self.tag_configure("Token.Name.Exception", foreground="#b05279")
+		self.tag_configure("Token.Name.Namespace", foreground="#8dc021")
+		self.tag_configure("Token.Name.Function", foreground="#6c99bb")
+		self.tag_configure("Token.Name.Function.Magic", foreground="#298fb5")
+		self.tag_configure("Token.Name.Attribute", foreground="#e87d3e")
+		self.tag_configure("Token.Name.Tag", foreground="#8dc021")
+		self.tag_configure("Token.Name.Decorator", foreground="#298fb5")
+		self.tag_configure("Token.Name.Builtin", foreground="#337fcc")
+		self.tag_configure("Token.Name.Builtin.Pseudo", foreground="#CC7A00")
+		self.tag_configure("Token.Operator", foreground="#B80000")
+		self.tag_configure("Token.Operator.Word", foreground="#ff1f1f")
+		self.tag_configure("Token.Comment.Preproc", foreground="#ec5f66")
+		self.tag_configure("Token.Comment.Single", foreground="#4e5a65")
+		self.tag_configure("Token.Comment.Multiline", foreground="#4e5a65")
+		self.tag_configure("Token.Literal.Number.Integer", foreground="#9e86c8")
+		self.tag_configure("Token.Literal.Number.Float", foreground="#9e86c8")
+		self.tag_configure("Token.Literal.Number.Hex", foreground="#9157f4")
+		self.tag_configure("Token.Literal.Number.Bin", foreground="#9157f4")
+		self.tag_configure("Token.Literal.Number.Oct", foreground="#9157f4")
+		self.tag_configure("Token.Literal.String.Doc", foreground="#4e5a65")
+		self.tag_configure("Token.Literal.String.Affix", foreground="#ee932b")
+		self.tag_configure("Token.Literal.String.Interpol", foreground="#9e86c8")
+		self.tag_configure("Token.Literal.String.Escape", foreground="#9e86c8")
+		self.tag_configure("Token.Literal.String.Single", foreground="#8dc021")
+		self.tag_configure("Token.Literal.String.Double", foreground="#8dc021")
 
 	def binds(self):
-		self.bind(settings["shortcuts"]["save"], self.saveas)
 		self.bind(settings["shortcuts"]["open"], self.open_file)
+		self.bind(settings["shortcuts"]["save"], self.save)
+		self.bind(settings["shortcuts"]["saveas"], self.saveas)
 		self.bind(settings["shortcuts"]["find"], self.find_text)
+		self.bind(settings["shortcuts"]["replace"], self.replace_text)
 		self.bind(settings["shortcuts"]["clear_highlight"], self.clear_highlight)
 		self.bind(settings["shortcuts"]["redo"], lambda x: self.event_generate("<<Redo>>"))
-		self.bind("<Key>", self.stat_updater)
-		self.bind("<Button>", self.stat_updater)
+		root.bind("<KeyRelease>", self.highlight)
+		root.bind("<Key>", self.stat_updater)
+		root.bind("<Button>", self.stat_updater)
 
 
 def about():
-	#messagebox.showinfo('About', 'Text Editor\nCreated by R. Malon.\n\nCopyright © 2019')
-	top = Toplevel(root)
-	top.title("About")
+	#messagebox.showinfo(lang['about'][0], 'Text Editor\nCreated by R. Malon.\n\nCopyright © 2019')
+	top = Toplevel(root, padx=25, pady=25)
+	top.grab_set()
+	top.bind('<Escape>', lambda x: top.destroy())
+	top.title(lang['about'][0])
+	top.resizable(False, False)
+	top.focus()
 	Message(top, 
-		text='Text Editor\nCreated by R. Malon.\n\nCopyright © 2019').pack()
+		text='Text Editor', 
+		font='{Trebuchet MS} 16 bold', 
+		aspect=300).pack()
+	Message(top, 
+		text=f"{lang['about'][1]}\n\n    Copyright © 2019", 
+		font='{Trebuchet MS} 12', 
+		aspect=300).pack()
 
 def play_song(path):
 	if not path:
@@ -192,22 +311,26 @@ def hide_menu(event):
 	root.config(menu='')
 	root.bind("<Alt-m>", show_menu)
 
+def leave(event=None):
+	if messagebox.askyesno(lang['leave'], choice(lang["quit_msg"]), icon='warning'):
+		root.quit()
+
 '''def add_tab():
 	tab = Frame(notebook)
 	notebook.add(tab, text=f'hi {len(tab_list)}')
 	tab_list.append(tab)
 	txt = Text(tab)'''
 
-with open('settings.json', 'r') as f:
-	settings = load(f)
-
 root = Tk()
-root.title("untitled - " + settings['title'])
+root.title(lang['untitled'] + " - " + settings['title'])
 root.iconbitmap(settings["icon"])
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
-root.geometry(settings['size'] + "+" + str(screen_width//2-360) + "+" + str(screen_height//2-240))
+root.geometry('+'.join([settings['size'], 
+	str(screen_width//2), 
+	str(screen_height//2)]))
 root.minsize(width=settings['minsize'][0], height=settings['minsize'][1])
+root.protocol('WM_DELETE_WINDOW', leave)
 textbox = TextBox(root, 
 	background=settings['background'], 
 	foreground=settings['text_color'], 
@@ -220,7 +343,7 @@ textbox = TextBox(root,
 	#tabs=tkfont.Font(font=txt_font).measure(' ' * 4), #overcomplicate?
 	)
 bottom_bar = Frame(root)
-text_stats = Label(bottom_bar, textvariable=textbox.v)
+text_stats = Label(bottom_bar, textvariable=textbox.stats)
 init()
 
 menu = Menu(root)
@@ -230,58 +353,72 @@ options_menu = Menu(menu, tearoff=0)
 font_menu = Menu(menu, tearoff=0)
 font_size_menu = Menu(menu, tearoff=0)
 style_menu = Menu(menu, tearoff=0)
+syntax_menu = Menu(menu, tearoff=0)
 help_menu = Menu(menu, tearoff=0)
 music_menu = Menu(menu, tearoff=0)
 default_music_menu = Menu(menu, tearoff=0)
 
-menu.add_cascade(label='File', menu=file_menu)
-menu.add_cascade(label='Edit', menu=edit_menu)
-menu.add_cascade(label='Options', menu=options_menu)
+menu.add_cascade(label=lang['menu'][0], menu=file_menu)
+menu.add_cascade(label=lang['menu'][1], menu=edit_menu)
+menu.add_cascade(label=lang['menu'][2], menu=options_menu)
 menu.add_separator()
-menu.add_cascade(label='Help', menu=help_menu)
+menu.add_cascade(label=lang['menu'][3], menu=help_menu)
 
-file_menu.add_command(label='New file')#, command=add_tab)
-file_menu.add_command(label='Open file', command=textbox.open_file)
-file_menu.add_command(label='Save as', command=textbox.saveas)
-file_menu.add_command(label='Rename file', command=textbox.rename)
+file_menu.add_command(label=lang['file'][0])#, command=add_tab)
+file_menu.add_command(label=lang['file'][1], command=textbox.open_file)
+file_menu.add_command(label=lang['file'][2], command=textbox.save)
+file_menu.add_command(label=lang['file'][3], command=textbox.saveas)
+file_menu.add_command(label=lang['file'][4], command=textbox.rename)
 file_menu.add_separator()
-file_menu.add_command(label='Exit', command=root.quit)
+file_menu.add_command(label=lang['file'][5], command=leave)
 
-edit_menu.add_command(label='Paste', command=lambda: textbox.event_generate("<<Paste>>"))
-edit_menu.add_command(label='Copy', command=lambda: textbox.event_generate("<<Copy>>"))
-edit_menu.add_command(label='Cut', command=lambda: textbox.event_generate("<<Cut>>"))
-edit_menu.add_command(label='Undo', command=lambda: textbox.event_generate("<<Undo>>"))
-edit_menu.add_command(label='Redo', command=lambda: textbox.event_generate("<<Redo>>"))
-edit_menu.add_command(label='Find', command=textbox.find_text)
-edit_menu.add_command(label='Clear highlighting', command=textbox.clear_highlight)
+edit_menu.add_command(label=lang['edit'][0], command=lambda: textbox.event_generate("<<Paste>>"))
+edit_menu.add_command(label=lang['edit'][1], command=lambda: textbox.event_generate("<<Copy>>"))
+edit_menu.add_command(label=lang['edit'][2], command=lambda: textbox.event_generate("<<Cut>>"))
+edit_menu.add_command(label=lang['edit'][3], command=lambda: textbox.event_generate("<<Undo>>"))
+edit_menu.add_command(label=lang['edit'][4], command=lambda: textbox.event_generate("<<Redo>>"))
+edit_menu.add_separator()
+edit_menu.add_command(label=lang['edit'][5], command=textbox.find_text)
+edit_menu.add_command(label=lang['edit'][6], command=textbox.replace_text)
+edit_menu.add_command(label=lang['edit'][7], command=textbox.clear_highlight)
 
-options_menu.add_cascade(label='Change font', menu=font_menu)
-options_menu.add_cascade(label='Change font size', menu=font_size_menu)
-options_menu.add_cascade(label='Change style', menu=style_menu)
-options_menu.add_cascade(label='Pick a song', menu=music_menu)
-options_menu.add_command(label='Scrap a webpage', command=textbox.scrap_page)
+options_menu.add_cascade(label=lang['options'][0], menu=font_menu)
+options_menu.add_cascade(label=lang['options'][1], menu=font_size_menu)
+options_menu.add_cascade(label=lang['options'][2], menu=style_menu)
+options_menu.add_cascade(label=lang['options'][3], menu=syntax_menu)
+options_menu.add_cascade(label=lang['options'][4], menu=music_menu)
+options_menu.add_command(label=lang['options'][5], command=textbox.scrap_page)
+options_menu.add_command(label=lang['options'][6], command=textbox.highlight_all)
 
-style_menu.add_command(label='Bold', command=lambda: textbox.tagger('bold'))
-style_menu.add_command(label='Italic', command=lambda: textbox.tagger('italic'))
-style_menu.add_command(label='Underline', command=lambda: textbox.tagger('underline'))
+style_menu.add_command(label=lang['style'][0], command=lambda: textbox.tagger('bold'))
+style_menu.add_command(label=lang['style'][1], command=lambda: textbox.tagger('italic'))
+style_menu.add_command(label=lang['style'][2], command=lambda: textbox.tagger('underline'))
+
+syntax_menu.add_command(label='Python 3', command=lambda: textbox.set_lexer(Python3Lexer()))
+syntax_menu.add_command(label='C/C++', command=lambda: textbox.set_lexer(CppLexer()))
+syntax_menu.add_command(label='C#', command=lambda: textbox.set_lexer(CSharpLexer()))
+syntax_menu.add_command(label='HTML', command=lambda: textbox.set_lexer(HtmlLexer()))
+syntax_menu.add_command(label='CSS', command=lambda: textbox.set_lexer(CssLexer()))
+syntax_menu.add_command(label='Javascript', command=lambda: textbox.set_lexer(JavascriptLexer()))
+syntax_menu.add_command(label='Java', command=lambda: textbox.set_lexer(JavaLexer()))
+syntax_menu.add_command(label='Rust', command=lambda: textbox.set_lexer(RustLexer()))
 
 for font_name in settings["fonts"]:
-	font_menu.add_command(label=font_name, command=lambda font_name=font_name: textbox.change_font(font_name))
+	font_menu.add_command(label=font_name, command=lambda font_name=font_name: textbox.change_font(font_name, 0))
 
 for size in range(settings["min_font_size"], settings["max_font_size"], settings["font_size_interval"]):
-	font_size_menu.add_command(label=size, command=lambda size=size: textbox.change_size(size))
-
-music_menu.add_command(label='Open audio file', command=open_audio)
-music_menu.add_cascade(label='Default music', menu=default_music_menu)
+	font_size_menu.add_command(label=size, command=lambda size=size: textbox.change_font(size, 1))
 
 for song in os.listdir('sound'):
 	default_music_menu.add_command(label=song, command=lambda song=song: play_song(f'sound/{song}'))
 
+music_menu.add_command(label=lang['music'][0], command=open_audio)
+music_menu.add_cascade(label=lang['music'][1], menu=default_music_menu)
 music_menu.add_separator()
-music_menu.add_command(label='Pause', command=music.pause)
-music_menu.add_command(label='Unpause', command=music.unpause)
+music_menu.add_command(label=lang['music'][2], command=music.pause)
+music_menu.add_command(label=lang['music'][3], command=music.unpause)
 
-help_menu.add_command(label='About', command=about)
+help_menu.add_command(label=lang['about'][0], command=about)
 
 root.bind(settings["shortcuts"]["maximize"], maximize)
 root.bind(settings["shortcuts"]["menu_hider"], hide_menu)

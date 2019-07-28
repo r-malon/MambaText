@@ -1,0 +1,26 @@
+{
+	"untitled": "Sem título",
+	"open": "Abrindo arquivo",
+	"about": ["Sobre", "Criado por Rafael Malon."],
+	"rename": ["Renomeando arquivo", "Digite o novo nome: ", "Arquivo não encontrado"],
+	"ask_replace": ["Substituindo", "Quer substituir o texto atual?"],
+	"scrap_page": ["Scraping page", "Digite o link para scrap: ", "Link inválido"],
+	"find": ["Buscar", "Digite o que vai buscar: ", "teve", "combinações"],
+	"stats": ["Posição", "Linhas", "Letras"],
+	"menu": ["Arquivo", "Edição", "Opções", "Ajuda"],
+	"file": ["Novo arquivo", "Abrir arquivo", "Salvar", "Salvar como", "Renomear arquivo", "Sair"],
+	"edit": ["Colar", "Copiar", "Cortar", "Desfazer", "Refazer", "Busca", "Substituir", "Limpar marcação"],
+	"options": ["Mudar fonte", "Mudar tamanho", "Mudar estilo", "Mudar sintaxe", "Música", "Scrap a webpage", "Destacar tudo"],
+	"style": ["Negrito", "Itálico", "Sublinhado"],
+	"music": ["Abrir arquivo de áudio", "Favoritas", "Pausar", "Despausar"],
+	"leave": "Sair?",
+	"quit_msg": [
+		"Vamos dar o fora,\nisso está virando um bug!", 
+		"Eu não sairia se fosse você.\nSublime é muito pior.", 
+		"Não saia ainda,\nhá um bug naquele canto!", 
+		"Vá embora.\nVeja se eu me importo", 
+		"Você tem certeza que quer\nsair deste excelente editor?", 
+		"Você tem sorte de eu não te dar\num cascudo por pensar em sair.", 
+		"Olha, irmão.\nVocê sai agora e perde sua contagem de linhas!", 
+		"Você gosta do Visual Code mais do que eu, certo?"]
+}
