@@ -12,7 +12,7 @@
 	"edit": ["Paste", "Copy", "Cut", "Undo", "Redo", "Find", "Replace", "Clear highlighting"],
 	"options": ["Change font", "Change font size", "Change style", "Change syntax", "Pick a song", "Scrap a webpage", "Highlight all"],
 	"style": ["Bold", "Italic", "Underline"],
-	"music": ["Open audio file", "Default music", "Pause", "Unpause"],
+	"music": ["Open audio file", "Favorites", "Pause", "Unpause"],
 	"leave": "Quit?",
 	"quit_msg": [
 		"Let's beat it - This is turning into a bug!", 

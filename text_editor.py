@@ -9,7 +9,7 @@ from requests.exceptions import MissingSchema, InvalidSchema, InvalidURL
 from pygame.mixer import music
 from pygame.mixer import init
 from pygments import lex
-from pygments.lexers import Python3Lexer, CppLexer, HtmlLexer, CssLexer, JavascriptLexer, JavaLexer, CSharpLexer, RustLexer
+from pygments.lexers import Python3Lexer, CppLexer, HtmlLexer, CssLexer, JavascriptLexer, JavaLexer, CSharpLexer, RustLexer, SqlLexer, MarkdownLexer
 from json import load
 from random import choice
 import os
@@ -155,7 +155,7 @@ class TextBox(Text):
 				search_start = f"{position}+{length.get()}c"
 				matches += 1
 			except TclError:
-				messagebox.showinfo(lang['find'][0], f"{to_find} {lang['find'][2]} {matches} {lang['find'][3]}")
+				messagebox.showinfo(lang['find'][0], f"'{to_find}' {lang['find'][2]} {matches} {lang['find'][3]}")
 				break
 
 	def replace_text(self, event=None):
@@ -218,6 +218,11 @@ class TextBox(Text):
 	def stat_updater(self, event=None):
 		self.stats.set(f"{lang['stats'][0]}: {self.index(INSERT)}; {lang['stats'][1]}: {int(self.index('end').split('.')[0]) - 1}; {lang['stats'][2]}: {len(self.get('1.0', 'end')) - 1}")
 
+	def tab_press(self, event=None):
+		self.insert(INSERT, '\t')
+		self.stat_updater()
+		return "break"
+
 	def tag_configs(self):
 		self.tag_configure("found", background=settings['found_color'])
 		self.tag_configure("bold", font=(self.cget('font').split(' ')[0], self.cget('font').split(' ')[1], 'bold'))
@@ -241,6 +246,7 @@ class TextBox(Text):
 		self.tag_configure("Token.Operator", foreground="#B80000")
 		self.tag_configure("Token.Operator.Word", foreground="#ff1f1f")
 		self.tag_configure("Token.Comment.Preproc", foreground="#ec5f66")
+		self.tag_configure("Token.Comment.Hashbang", foreground="#4e5a65")
 		self.tag_configure("Token.Comment.Single", foreground="#4e5a65")
 		self.tag_configure("Token.Comment.Multiline", foreground="#4e5a65")
 		self.tag_configure("Token.Literal.Number.Integer", foreground="#9e86c8")
@@ -254,6 +260,10 @@ class TextBox(Text):
 		self.tag_configure("Token.Literal.String.Escape", foreground="#9e86c8")
 		self.tag_configure("Token.Literal.String.Single", foreground="#8dc021")
 		self.tag_configure("Token.Literal.String.Double", foreground="#8dc021")
+		self.tag_configure("Token.Literal.String.Backtick", foreground="#8dc021")
+		self.tag_configure("Token.Generic.Heading", foreground="#ff1f1f")
+		self.tag_configure("Token.Generic.Subheading", foreground="#f97b58")
+		self.tag_configure("Token.Generic.Strong", foreground="#4e5a65")
 
 	def binds(self):
 		self.bind(settings["shortcuts"]["open"], self.open_file)
@@ -263,13 +273,15 @@ class TextBox(Text):
 		self.bind(settings["shortcuts"]["replace"], self.replace_text)
 		self.bind(settings["shortcuts"]["clear_highlight"], self.clear_highlight)
 		self.bind(settings["shortcuts"]["redo"], lambda x: self.event_generate("<<Redo>>"))
+		self.bind("<Tab>", self.tab_press)
 		root.bind("<KeyRelease>", self.highlight)
 		root.bind("<Key>", self.stat_updater)
 		root.bind("<Button>", self.stat_updater)
+		root.bind(settings["shortcuts"]["maximize"], maximize)
+		root.bind(settings["shortcuts"]["menu_hider"], hide_menu)
 
 
 def about():
-	#messagebox.showinfo(lang['about'][0], 'Text Editor\nCreated by R. Malon.\n\nCopyright © 2019')
 	top = Toplevel(root, padx=25, pady=25)
 	top.grab_set()
 	top.bind('<Escape>', lambda x: top.destroy())
@@ -297,19 +309,19 @@ def open_audio():
 
 def maximize(event):
 	root.attributes("-fullscreen", True)
-	root.bind("<F11>", minimize)
+	root.bind(settings["shortcuts"]["maximize"], minimize)
 
 def minimize(event):
 	root.attributes("-fullscreen", False)
-	root.bind("<F11>", maximize)
+	root.bind(settings["shortcuts"]["maximize"], maximize)
 
 def show_menu(event):
 	root.config(menu=menu)
-	root.bind("<Alt-m>", hide_menu)
+	root.bind(settings["shortcuts"]["menu_hider"], hide_menu)
 
 def hide_menu(event):
 	root.config(menu='')
-	root.bind("<Alt-m>", show_menu)
+	root.bind(settings["shortcuts"]["menu_hider"], show_menu)
 
 def leave(event=None):
 	if messagebox.askyesno(lang['leave'], choice(lang["quit_msg"]), icon='warning'):
@@ -347,16 +359,16 @@ text_stats = Label(bottom_bar, textvariable=textbox.stats)
 init()
 
 menu = Menu(root)
-file_menu = Menu(menu, tearoff=0)
-edit_menu = Menu(menu, tearoff=0)
-options_menu = Menu(menu, tearoff=0)
-font_menu = Menu(menu, tearoff=0)
-font_size_menu = Menu(menu, tearoff=0)
-style_menu = Menu(menu, tearoff=0)
-syntax_menu = Menu(menu, tearoff=0)
-help_menu = Menu(menu, tearoff=0)
-music_menu = Menu(menu, tearoff=0)
-default_music_menu = Menu(menu, tearoff=0)
+file_menu = Menu(menu, tearoff=False)
+edit_menu = Menu(menu, tearoff=False)
+options_menu = Menu(menu, tearoff=False)
+font_menu = Menu(menu, tearoff=False)
+font_size_menu = Menu(menu, tearoff=False)
+style_menu = Menu(menu, tearoff=False)
+syntax_menu = Menu(menu, tearoff=False)
+help_menu = Menu(menu, tearoff=False)
+music_menu = Menu(menu, tearoff=False)
+default_music_menu = Menu(menu, tearoff=False)
 
 menu.add_cascade(label=lang['menu'][0], menu=file_menu)
 menu.add_cascade(label=lang['menu'][1], menu=edit_menu)
@@ -402,6 +414,8 @@ syntax_menu.add_command(label='CSS', command=lambda: textbox.set_lexer(CssLexer(
 syntax_menu.add_command(label='Javascript', command=lambda: textbox.set_lexer(JavascriptLexer()))
 syntax_menu.add_command(label='Java', command=lambda: textbox.set_lexer(JavaLexer()))
 syntax_menu.add_command(label='Rust', command=lambda: textbox.set_lexer(RustLexer()))
+syntax_menu.add_command(label='SQL', command=lambda: textbox.set_lexer(SqlLexer()))
+syntax_menu.add_command(label='Markdown', command=lambda: textbox.set_lexer(MarkdownLexer()))
 
 for font_name in settings["fonts"]:
 	font_menu.add_command(label=font_name, command=lambda font_name=font_name: textbox.change_font(font_name, 0))
@@ -419,9 +433,6 @@ music_menu.add_command(label=lang['music'][2], command=music.pause)
 music_menu.add_command(label=lang['music'][3], command=music.unpause)
 
 help_menu.add_command(label=lang['about'][0], command=about)
-
-root.bind(settings["shortcuts"]["maximize"], maximize)
-root.bind(settings["shortcuts"]["menu_hider"], hide_menu)
 
 if __name__ == '__main__':
 	textbox.pack(expand=True, fill=BOTH)

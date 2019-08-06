@@ -1,15 +1,11 @@
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
-#from tkinter.font import Font
 from tkinter.simpledialog import askstring
-#from tkinter import ttk
 from requests import get
 from requests.exceptions import MissingSchema, InvalidSchema
 from pygame.mixer import music
 from pygame.mixer import init
-#from pygments import lex
-#from pygments.lexers import Python3Lexer, CppLexer, HtmlLexer, CssLexer, JavascriptLexer, JavaLexer, CSharpLexer, RustLexer
 from json import load
 from random import choice
 import os
@@ -25,7 +21,6 @@ class TextBox(Text):
 		super(TextBox, self).__init__(*args, **kwargs)
 		self.current_file = ''
 		self.modified = False
-		#self.current_lexer = Python3Lexer()
 		self.filetypes = [tuple(i) for i in settings['filetypes']]
 		self.config(font='Verdana 12 normal')
 		self.stats = StringVar()
@@ -61,30 +56,6 @@ class TextBox(Text):
 		self.modified = False
 		self.stat_updater()
 		root.title(f"{save_local} - {settings['title']}")
-
-	def rename(self, event=None):
-		if not self.current_file:
-			file_name = filedialog.askopenfilename()
-			self.focus()
-			if not file_name:
-				return False
-		else:
-			file_name = self.current_file
-		path = filedialog.askdirectory()
-		self.focus()
-		if not path:
-			path = os.path.dirname(file_name)
-		new_name = askstring(lang['rename'][0], lang['rename'][1])
-		self.focus()
-		if not new_name:
-			return False
-		try:
-			os.rename(file_name, os.path.join(path + '/', new_name))
-		except FileNotFoundError:
-			messagebox.showerror("Error", lang['rename'][2])
-		self.current_file = path + new_name
-		self.modified = False
-		root.title(f"{self.current_file} - {settings['title']}")
 
 	def new_text(self, text):
 		self.delete("1.0", "end")
@@ -169,13 +140,13 @@ class TextBox(Text):
 		self.bind(settings["shortcuts"]["find"], self.find_text)
 		self.bind(settings["shortcuts"]["clear_highlight"], self.clear_highlight)
 		self.bind(settings["shortcuts"]["redo"], lambda x: self.event_generate("<<Redo>>"))
-		#root.bind("<KeyRelease>", self.highlight)
 		root.bind("<Key>", self.stat_updater)
 		root.bind("<Button>", self.stat_updater)
 
 
 def about():
-	messagebox.showinfo(lang['about'][0], 'Text Editor\nCreated by R. Malon.\n\nCopyright © 2019')
+	messagebox.showinfo(lang['about'][0], 
+		'Text Editor\nCreated by R. Malon.\n\nCopyright © 2019')
 	
 def play_song(path):
 	if not path:
@@ -202,12 +173,6 @@ def show_menu(event):
 def hide_menu(event):
 	root.config(menu='')
 	root.bind("<Alt-m>", show_menu)
-
-'''def add_tab():
-	tab = Frame(notebook)
-	notebook.add(tab, text=f'hi {len(tab_list)}')
-	tab_list.append(tab)
-	txt = Text(tab)'''
 
 root = Tk()
 root.title(lang['untitled'] + " - " + settings['title'])
@@ -238,8 +203,6 @@ edit_menu = Menu(menu, tearoff=0)
 options_menu = Menu(menu, tearoff=0)
 font_menu = Menu(menu, tearoff=0)
 font_size_menu = Menu(menu, tearoff=0)
-style_menu = Menu(menu, tearoff=0)
-syntax_menu = Menu(menu, tearoff=0)
 help_menu = Menu(menu, tearoff=0)
 
 menu.add_cascade(label=lang['menu'][0], menu=file_menu)
@@ -248,10 +211,9 @@ menu.add_cascade(label=lang['menu'][2], menu=options_menu)
 menu.add_separator()
 menu.add_cascade(label=lang['menu'][3], menu=help_menu)
 
-file_menu.add_command(label=lang['file'][0])#, command=add_tab)
+file_menu.add_command(label=lang['file'][0])
 file_menu.add_command(label=lang['file'][1], command=textbox.open_file)
 file_menu.add_command(label=lang['file'][3], command=textbox.saveas)
-file_menu.add_command(label=lang['file'][4], command=textbox.rename)
 file_menu.add_separator()
 file_menu.add_command(label=lang['file'][5], command=root.quit)
 
@@ -262,16 +224,11 @@ edit_menu.add_command(label=lang['edit'][3], command=lambda: textbox.event_gener
 edit_menu.add_command(label=lang['edit'][4], command=lambda: textbox.event_generate("<<Redo>>"))
 edit_menu.add_separator()
 edit_menu.add_command(label=lang['edit'][5], command=textbox.find_text)
-edit_menu.add_command(label=lang['edit'][6], command=textbox.clear_highlight)
 
 options_menu.add_cascade(label=lang['options'][0], menu=font_menu)
 options_menu.add_cascade(label=lang['options'][1], menu=font_size_menu)
-options_menu.add_cascade(label=lang['options'][2], menu=style_menu)
 options_menu.add_command(label=lang['options'][5], command=textbox.scrap_page)
 
-style_menu.add_command(label=lang['style'][0], command=lambda: textbox.tagger('bold'))
-style_menu.add_command(label=lang['style'][1], command=lambda: textbox.tagger('italic'))
-style_menu.add_command(label=lang['style'][2], command=lambda: textbox.tagger('underline'))
 for font_name in settings["fonts"]:
 	font_menu.add_command(label=font_name, command=lambda font_name=font_name: textbox.change_font(font_name, 0))
 
