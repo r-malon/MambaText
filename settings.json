@@ -19,11 +19,15 @@
 	"filetypes": [
 		["All Files", "*.*"], 
 		["Text Files", "*.txt"], 
+		["SQL Files", "*.sql"], 
 		["Python Scripts", "*.py"], 
+		["C/C++ Files", "*.cpp *.c *.h"], 
+		["Java Files", "*.java"],
 		["Markdown Documents", "*.md"], 
 		["HTML Documents", "*.html"], 
 		["CSS Documents", "*.css"], 
-		["JavaScript Files", "*.js"]],
+		["JavaScript Files", "*.js"], 
+		["JSON Documents", "*.json"]],
 	"fonts": [
 		"Arial",
 		"Times",
@@ -35,6 +39,7 @@
 	"shortcuts": {
 		"menu_hider": "<Alt-m>",
 		"maximize": "<F11>",
+		"new_file": "<Control-n>",
 		"save": "<Control-s>",
 		"saveas": "<Control-Shift-S>",
 		"open": "<Control-o>",

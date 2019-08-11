@@ -1,13 +1,9 @@
 from tkinter import *
-from tkinter import messagebox
-from tkinter import filedialog
-#from tkinter.font import Font
+from tkinter import messagebox, filedialog
 from tkinter.simpledialog import askstring
-#from tkinter import ttk
 from requests import get
 from requests.exceptions import MissingSchema, InvalidSchema, InvalidURL
-from pygame.mixer import music
-from pygame.mixer import init
+from pygame.mixer import music, init
 from pygments import lex
 from pygments.lexers import Python3Lexer, CppLexer, HtmlLexer, CssLexer, JavascriptLexer, JavaLexer, CSharpLexer, RustLexer, SqlLexer, MarkdownLexer
 from json import load
@@ -27,9 +23,9 @@ class TextBox(Text):
 		self.modified = False
 		self.current_lexer = Python3Lexer()
 		self.filetypes = [tuple(i) for i in settings['filetypes']]
-		self.config(font='Verdana 12 normal')
 		self.stats = StringVar()
 		self.stats.set(f"{lang['stats'][0]}: {self.index(INSERT)}; {lang['stats'][1]}: {int(self.index('end').split('.')[0]) - 1}; {lang['stats'][2]}: {len(self.get('1.0', 'end')) - 1}")
+		self.config(font='Verdana 12 normal')
 		self.binds()
 		self.tag_configs()
 		self.focus()
@@ -98,10 +94,18 @@ class TextBox(Text):
 		self.delete("1.0", "end")
 		self.insert("end", text)
 
+	def delete_all(self, event=None):
+		if self.get("1.0", "end") != '\n':
+			if messagebox.askyesno(lang['delete_all'][0], 
+				lang['delete_all'][1], 
+				icon='warning'):
+				self.delete("1.0", "end")
+				root.title(lang['untitled'] + " - " + settings['title'])
+
 	def ask_replace(self, new_str, msg=lang['ask_replace'][0]):
 		if self.get("1.0", "end") != '\n':
-			asked = messagebox.askyesno(msg, 
-				lang['ask_replace'][1], 
+			asked = messagebox.askyesno(msg,
+				lang['ask_replace'][1],
 				icon='warning')
 			if asked:
 				self.new_text(new_str)
@@ -158,21 +162,7 @@ class TextBox(Text):
 				messagebox.showinfo(lang['find'][0], f"'{to_find}' {lang['find'][2]} {matches} {lang['find'][3]}")
 				break
 
-	def replace_text(self, event=None):
-		#to_find = askstring(lang['find'][0], lang['find'][1])
-		#to_replace = askstring(lang['find'][0], lang['find'][1])
-		top = Toplevel(root, padx=25, pady=25)
-		top.grab_set()
-		top.bind('<Escape>', lambda x: top.destroy())
-		top.title(lang['about'][0])
-		top.resizable(False, False)
-		top.focus()
-		v = StringVar()
-		w = StringVar()
-		Entry(top, textvariable=v).pack()
-		Entry(top, textvariable=w).pack()
-		to_find = v.get()
-		to_replace = w.get()
+	def replacer(self, to_find, to_replace):
 		search_start = '1.0'
 		while True:
 			try:
@@ -188,6 +178,28 @@ class TextBox(Text):
 			except TclError:
 				break
 
+	def replace_text(self, event=None):
+		to_find = askstring(lang['replace'][0], lang['replace'][1])
+		to_replace = askstring(lang['replace'][0], lang['replace'][2])
+		self.focus()
+		if not to_find or not to_replace:
+			return False
+		self.replacer(to_find, to_replace)
+		'''
+		top = Toplevel(root, padx=25, pady=25)
+		top.grab_set()
+		top.bind('<Escape>', lambda x: top.destroy())
+		top.title(lang['about'][0])
+		top.resizable(False, False)
+		top.focus()
+		v = StringVar()
+		w = StringVar()
+		Entry(top, textvariable=v).pack()
+		Entry(top, textvariable=w).pack()
+		to_find = v.get()
+		to_replace = w.get()
+		'''
+
 	def set_lexer(self, lexer, event=None):
 		self.current_lexer = lexer
 		self.highlight_all()
@@ -197,7 +209,6 @@ class TextBox(Text):
 		data = self.get("range_start", INSERT)
 		for token, content in lex(data, self.current_lexer):
 			self.mark_set("range_end", "range_start+%dc" % len(content))
-			print(token)
 			self.tag_add(str(token), "range_start", "range_end")
 			self.mark_set("range_start", "range_end")
 
@@ -207,7 +218,6 @@ class TextBox(Text):
 		data = self.get("range_start", self.index('range_start')[0] + '.end')
 		for token, content in lex(data, self.current_lexer):
 			self.mark_set("range_end", "range_start+%dc" % len(content))
-			print('ALL: ', token)
 			self.tag_add(str(token), "range_start", "range_end")
 			self.mark_set("range_start", "range_end")
 
@@ -224,10 +234,14 @@ class TextBox(Text):
 		return "break"
 
 	def tag_configs(self):
+		current_font = self.cget('font').split(' ')
 		self.tag_configure("found", background=settings['found_color'])
-		self.tag_configure("bold", font=(self.cget('font').split(' ')[0], self.cget('font').split(' ')[1], 'bold'))
-		self.tag_configure("italic", font=(self.cget('font').split(' ')[0], self.cget('font').split(' ')[1], 'italic'))
-		self.tag_configure("underline", font=(self.cget('font').split(' ')[0], self.cget('font').split(' ')[1], 'underline'))
+		self.tag_configure("bold", 
+			font=(current_font[0], current_font[1], 'bold'))
+		self.tag_configure("italic", 
+			font=(current_font[0], current_font[1], 'italic'))
+		self.tag_configure("underline", 
+			font=(current_font[0], current_font[1], 'underline'))
 		self.tag_configure("Token.Keyword", foreground="#CC7A00")
 		self.tag_configure("Token.Keyword.Constant", foreground="#f97b58")
 		self.tag_configure("Token.Keyword.Declaration", foreground="#9e86c8")
@@ -266,6 +280,7 @@ class TextBox(Text):
 		self.tag_configure("Token.Generic.Strong", foreground="#4e5a65")
 
 	def binds(self):
+		self.bind(settings["shortcuts"]["new_file"], self.delete_all)
 		self.bind(settings["shortcuts"]["open"], self.open_file)
 		self.bind(settings["shortcuts"]["save"], self.save)
 		self.bind(settings["shortcuts"]["saveas"], self.saveas)
@@ -316,10 +331,12 @@ def minimize(event):
 	root.bind(settings["shortcuts"]["maximize"], maximize)
 
 def show_menu(event):
+	bottom_bar.pack(fill=X)
 	root.config(menu=menu)
 	root.bind(settings["shortcuts"]["menu_hider"], hide_menu)
 
 def hide_menu(event):
+	bottom_bar.pack_forget()
 	root.config(menu='')
 	root.bind(settings["shortcuts"]["menu_hider"], show_menu)
 
@@ -368,7 +385,7 @@ style_menu = Menu(menu, tearoff=False)
 syntax_menu = Menu(menu, tearoff=False)
 help_menu = Menu(menu, tearoff=False)
 music_menu = Menu(menu, tearoff=False)
-default_music_menu = Menu(menu, tearoff=False)
+favorites_menu = Menu(menu, tearoff=False)
 
 menu.add_cascade(label=lang['menu'][0], menu=file_menu)
 menu.add_cascade(label=lang['menu'][1], menu=edit_menu)
@@ -376,7 +393,7 @@ menu.add_cascade(label=lang['menu'][2], menu=options_menu)
 menu.add_separator()
 menu.add_cascade(label=lang['menu'][3], menu=help_menu)
 
-file_menu.add_command(label=lang['file'][0])#, command=add_tab)
+file_menu.add_command(label=lang['file'][0], command=textbox.delete_all)
 file_menu.add_command(label=lang['file'][1], command=textbox.open_file)
 file_menu.add_command(label=lang['file'][2], command=textbox.save)
 file_menu.add_command(label=lang['file'][3], command=textbox.saveas)
@@ -399,6 +416,7 @@ options_menu.add_cascade(label=lang['options'][1], menu=font_size_menu)
 options_menu.add_cascade(label=lang['options'][2], menu=style_menu)
 options_menu.add_cascade(label=lang['options'][3], menu=syntax_menu)
 options_menu.add_cascade(label=lang['options'][4], menu=music_menu)
+options_menu.add_separator()
 options_menu.add_command(label=lang['options'][5], command=textbox.scrap_page)
 options_menu.add_command(label=lang['options'][6], command=textbox.highlight_all)
 
@@ -409,25 +427,27 @@ style_menu.add_command(label=lang['style'][2], command=lambda: textbox.tagger('u
 syntax_menu.add_command(label='Python 3', command=lambda: textbox.set_lexer(Python3Lexer()))
 syntax_menu.add_command(label='C/C++', command=lambda: textbox.set_lexer(CppLexer()))
 syntax_menu.add_command(label='C#', command=lambda: textbox.set_lexer(CSharpLexer()))
+syntax_menu.add_command(label='Java', command=lambda: textbox.set_lexer(JavaLexer()))
+syntax_menu.add_command(label='Rust', command=lambda: textbox.set_lexer(RustLexer()))
 syntax_menu.add_command(label='HTML', command=lambda: textbox.set_lexer(HtmlLexer()))
 syntax_menu.add_command(label='CSS', command=lambda: textbox.set_lexer(CssLexer()))
 syntax_menu.add_command(label='Javascript', command=lambda: textbox.set_lexer(JavascriptLexer()))
-syntax_menu.add_command(label='Java', command=lambda: textbox.set_lexer(JavaLexer()))
-syntax_menu.add_command(label='Rust', command=lambda: textbox.set_lexer(RustLexer()))
 syntax_menu.add_command(label='SQL', command=lambda: textbox.set_lexer(SqlLexer()))
 syntax_menu.add_command(label='Markdown', command=lambda: textbox.set_lexer(MarkdownLexer()))
 
 for font_name in settings["fonts"]:
 	font_menu.add_command(label=font_name, command=lambda font_name=font_name: textbox.change_font(font_name, 0))
 
-for size in range(settings["min_font_size"], settings["max_font_size"], settings["font_size_interval"]):
+for size in range(settings["min_font_size"], 
+	settings["max_font_size"] + settings["font_size_interval"], 
+	settings["font_size_interval"]):
 	font_size_menu.add_command(label=size, command=lambda size=size: textbox.change_font(size, 1))
 
 for song in os.listdir('sound'):
-	default_music_menu.add_command(label=song, command=lambda song=song: play_song(f'sound/{song}'))
+	favorites_menu.add_command(label=song, command=lambda song=song: play_song(f'sound/{song}'))
 
 music_menu.add_command(label=lang['music'][0], command=open_audio)
-music_menu.add_cascade(label=lang['music'][1], menu=default_music_menu)
+music_menu.add_cascade(label=lang['music'][1], menu=favorites_menu)
 music_menu.add_separator()
 music_menu.add_command(label=lang['music'][2], command=music.pause)
 music_menu.add_command(label=lang['music'][3], command=music.unpause)

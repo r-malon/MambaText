@@ -4,6 +4,8 @@
 	"about": ["About", "Created by Rafael Malon."],
 	"rename": ["Renaming file", "Enter the new name: ", "File not found"],
 	"ask_replace": ["Replacing", "Do you want to replace the current text?"],
+	"replace": ["Replacing", "Find: ", "Replace with: "],
+	"delete_all": ["Delete All", "Are you sure about deleting everything? "],
 	"scrap_page": ["Scraping page", "Enter the link you want to scrap: ", "Invalid link"],
 	"find": ["Find", "Enter what you want to find: ", "had", "matches"],
 	"stats": ["Position", "Lines", "Characters"],
