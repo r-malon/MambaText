@@ -22,7 +22,7 @@
 		["SQL Files", "*.sql"], 
 		["Python Scripts", "*.py"], 
 		["C/C++ Files", "*.cpp *.c *.h"], 
-		["Java Files", "*.java"],
+		["Java Files", "*.java"], 
 		["Markdown Documents", "*.md"], 
 		["HTML Documents", "*.html"], 
 		["CSS Documents", "*.css"], 

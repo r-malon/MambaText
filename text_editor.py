@@ -142,8 +142,7 @@ class TextBox(Text):
 
 	def find_text(self, event=None):
 		to_find = askstring(lang['find'][0], lang['find'][1])
-		search_start = '1.0'
-		matches = 0
+		search_start, matches = '1.0', 0
 		self.focus()
 		if not to_find:
 			return False
@@ -185,20 +184,6 @@ class TextBox(Text):
 		if not to_find or not to_replace:
 			return False
 		self.replacer(to_find, to_replace)
-		'''
-		top = Toplevel(root, padx=25, pady=25)
-		top.grab_set()
-		top.bind('<Escape>', lambda x: top.destroy())
-		top.title(lang['about'][0])
-		top.resizable(False, False)
-		top.focus()
-		v = StringVar()
-		w = StringVar()
-		Entry(top, textvariable=v).pack()
-		Entry(top, textvariable=w).pack()
-		to_find = v.get()
-		to_replace = w.get()
-		'''
 
 	def set_lexer(self, lexer, event=None):
 		self.current_lexer = lexer
