@@ -91,36 +91,6 @@ class TextBox(Text):
 		if self.ask_replace(response.content, msg=lang['scrap_page'][0]):
 			root.title(f"{link} - {settings['title']}")
 
-	def tagger(self, tag_name):
-		tagged = self.tag_names("sel.first")
-		self.tag_configs()
-		if tag_name in tagged:
-			self.tag_remove(tag_name, "sel.first", "sel.last")
-		else:
-			self.tag_add(tag_name, "sel.first", "sel.last")
-
-	def find_text(self, event=None):
-		to_find = askstring(lang['find'][0], lang['find'][1])
-		search_start = '1.0'
-		matches = 0
-		self.focus()
-		if not to_find:
-			return False
-		while True:
-			try:
-				length = StringVar()
-				position = self.search(
-					to_find, 
-					search_start, 
-					stopindex='end', 
-					count=length)
-				self.tag_add("found", position, f"{position}+{length.get()}c")
-				search_start = f"{position}+{length.get()}c"
-				matches += 1
-			except TclError:
-				messagebox.showinfo(lang['find'][0], f"{to_find} {lang['find'][2]} {matches} {lang['find'][3]}")
-				break
-
 	def clear_highlight(self, event=None):
 		for tag in self.tag_names():
 			self.tag_remove(tag, '1.0', 'end')
@@ -137,7 +107,6 @@ class TextBox(Text):
 	def binds(self):
 		self.bind(settings["shortcuts"]["open"], self.open_file)
 		self.bind(settings["shortcuts"]["saveas"], self.saveas)
-		self.bind(settings["shortcuts"]["find"], self.find_text)
 		self.bind(settings["shortcuts"]["clear_highlight"], self.clear_highlight)
 		self.bind(settings["shortcuts"]["redo"], lambda x: self.event_generate("<<Redo>>"))
 		root.bind("<Key>", self.stat_updater)
@@ -211,7 +180,6 @@ menu.add_cascade(label=lang['menu'][2], menu=options_menu)
 menu.add_separator()
 menu.add_cascade(label=lang['menu'][3], menu=help_menu)
 
-file_menu.add_command(label=lang['file'][0])
 file_menu.add_command(label=lang['file'][1], command=textbox.open_file)
 file_menu.add_command(label=lang['file'][3], command=textbox.saveas)
 file_menu.add_separator()
@@ -222,8 +190,6 @@ edit_menu.add_command(label=lang['edit'][1], command=lambda: textbox.event_gener
 edit_menu.add_command(label=lang['edit'][2], command=lambda: textbox.event_generate("<<Cut>>"))
 edit_menu.add_command(label=lang['edit'][3], command=lambda: textbox.event_generate("<<Undo>>"))
 edit_menu.add_command(label=lang['edit'][4], command=lambda: textbox.event_generate("<<Redo>>"))
-edit_menu.add_separator()
-edit_menu.add_command(label=lang['edit'][5], command=textbox.find_text)
 
 options_menu.add_cascade(label=lang['options'][0], menu=font_menu)
 options_menu.add_cascade(label=lang['options'][1], menu=font_size_menu)
