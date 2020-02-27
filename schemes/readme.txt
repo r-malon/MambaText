@@ -1,0 +1,1 @@
+Put your custom color schemes (background, text, ..., syntax highlighter tokens color) in this folder.

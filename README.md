@@ -1,10 +1,10 @@
-# Text Editor
+# MambaText
 ---
-This is a text editor made with Python 3.6 and Tkinter, any similarity with Sublime Text is a mere coincidence.
+This is a text editor made with Python 3.6 and Tkinter, any similarity with Sublime Text is a mere coincidence. Syntax highlighting was done with Pygments.
 
 ### Features
 - [x] Open/save/rename text files
-- [x] Store settings in .json file
+- [x] Settings stored in .json files
 - [x] Custom shortcuts and colors
 - [x] Fullscreen mode
 - [x] Menu hiding
@@ -12,16 +12,16 @@ This is a text editor made with Python 3.6 and Tkinter, any similarity with Subl
 - [x] Text search and highlight
 - [x] Line/Character counting
 - [x] Cursor position
-- [x] Get data from webpage
+- [x] Web scraper
 - [x] Change font
 - [x] Change font size
 - [x] Change language
 - [x] Audio file opening
+- [x] Syntax highlighting
 - [ ] Change font style
 - [ ] Text replacement
 - [ ] Regex support
-- [ ] Syntax highlighting
-- [ ] Self updates
+- [ ] Self updater
 - [ ] Tabs for multiple opened files
 
 ## License

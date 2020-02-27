@@ -1,18 +1,13 @@
 {
-	"title": "My editor",
+	"title": "MambaText",
 	"lang_file": "languages/portuguese.json",
+	"scheme": "schemes/monokai.json",
 	"size": "720x480",
-	"minsize": [240, 430],
+	"minsize": [250, 450],
 	"icon": "icon.ico",
-	"background": "#202020",
-	"text_color": "#c8c8c8",
-	"insert_color": "#FFA07A",
 	"insert_width": 1,
 	"insertofftime": 200,
 	"insertontime": 500,
-	"selectforeground": "#6c99bb",
-	"selectbackground": "#d6d6d6",
-	"found_color": "#008000",
 	"min_font_size": 6,
 	"max_font_size": 26,
 	"font_size_interval": 2,
@@ -27,7 +22,8 @@
 		["HTML Documents", "*.html"], 
 		["CSS Documents", "*.css"], 
 		["JavaScript Files", "*.js"], 
-		["JSON Documents", "*.json"]],
+		["JSON Documents", "*.json"]
+	],
 	"fonts": [
 		"Arial",
 		"Times",
@@ -35,7 +31,8 @@
 		"Georgia",
 		"Verdana",
 		"Comic Sans MS",
-		"Trebuchet MS"],
+		"Trebuchet MS"
+	],
 	"shortcuts": {
 		"menu_hider": "<Alt-m>",
 		"maximize": "<F11>",
@@ -45,7 +42,8 @@
 		"open": "<Control-o>",
 		"find": "<Control-f>",
 		"replace": "<Control-h>",
-		"clear_highlight": "<Control-l>",
-		"redo": "<Control-Shift-Z>"
+		"clear_highlights": "<Control-l>",
+		"redo": "<Control-Shift-Z>",
+		"un_pause": "<Control-p>"
 	}
 }

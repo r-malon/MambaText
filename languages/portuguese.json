@@ -3,7 +3,7 @@
 	"open": "Abrindo arquivo",
 	"about": ["Sobre", "Criado por Rafael Malon."],
 	"rename": ["Renomeando arquivo", "Digite o novo nome: ", "Arquivo não encontrado"],
-	"ask_replace": ["Substituindo", "Quer substituir o texto atual?"],
+	"replace_current": ["Substituindo", "Quer substituir o texto atual?"],
 	"replace": ["Substituindo", "Buscar: ", "Substituir por: "],
 	"delete_all": ["Deletar tudo", "Tem certeza que quer deletar tudo? "],
 	"scrap_page": ["Web Scraping", "Digite o link para extração: ", "Link inválido"],
@@ -19,7 +19,8 @@
 		"Mudar sintaxe", 
 		"Música", 
 		"Web scrap", 
-		"Destacar tudo"],
+		"Destacar tudo"
+	],
 	"style": ["Negrito", "Itálico", "Sublinhado"],
 	"music": ["Abrir arquivo de áudio", "Favoritas", "Pausar", "Despausar"],
 	"leave": "Sair?",
@@ -31,5 +32,6 @@
 		"Você tem certeza que quer\nsair deste excelente editor?", 
 		"Você tem sorte de eu não te dar\num cascudo por pensar em sair.", 
 		"Olha, irmão.\nVocê sai agora e perde sua contagem de linhas!", 
-		"Você gosta do Visual Code mais do que eu, certo?"]
+		"Você gosta do Visual Code mais do que eu, certo?"
+	]
 }
